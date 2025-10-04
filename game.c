@@ -95,3 +95,127 @@ void createBoard(char board[MAX_SIZE][MAX_SIZE], int n) {
     }
 }
 
+// Display the board with row/column headers
+void showBoard(char board[MAX_SIZE][MAX_SIZE], int n) {
+    printf("   ");
+    for (int c = 0; c < n; c++) {
+        printf("%d ", c + 1);
+    }
+    printf("\n");
+
+    for (int r = 0; r < n; r++) {
+        printf("%2d ", r + 1);
+        for (int c = 0; c < n; c++) {
+            printf("%c ", board[r][c]);
+        }
+        printf("\n");
+    }
+}
+
+// Check if a move is valid
+int isValidMove(char board[MAX_SIZE][MAX_SIZE], int n, int r, int c) {
+    return (r >= 0 && r < n && c >= 0 && c < n && board[r][c] == '.');
+}
+
+// Place player's move
+void playerMove(char board[MAX_SIZE][MAX_SIZE], int n, char symbol) {
+    int r, c;
+    do {
+        printf("Enter row and column (1-%d): ", n);
+        scanf("%d %d", &r, &c);
+        r--; c--;  // adjust to 0-index
+    } while (!isValidMove(board, n, r, c));
+
+    board[r][c] = symbol;
+}
+
+// Check win condition (rows, columns, diagonals)
+int hasPlayerWon(char board[MAX_SIZE][MAX_SIZE], int n, char symbol) {
+    // Rows
+    for (int r = 0; r < n; r++) {
+        int rowWin = 1;
+        for (int c = 0; c < n; c++) {
+            if (board[r][c] != symbol) {
+                rowWin = 0;
+                break;
+            }
+        }
+        if (rowWin) return 1;
+    }
+
+    // Columns
+    for (int c = 0; c < n; c++) {
+        int colWin = 1;
+        for (int r = 0; r < n; r++) {
+            if (board[r][c] != symbol) {
+                colWin = 0;
+                break;
+            }
+        }
+        if (colWin) return 1;
+    }
+
+    // Main diagonal
+    int mainDiag = 1;
+    for (int i = 0; i < n; i++) {
+        if (board[i][i] != symbol) {
+            mainDiag = 0;
+            break;
+        }
+    }
+    if (mainDiag) return 1;
+
+    // Anti-diagonal
+    int antiDiag = 1;
+    for (int i = 0; i < n; i++) {
+        if (board[i][n - 1 - i] != symbol) {
+            antiDiag = 0;
+            break;
+        }
+    }
+    return antiDiag;
+}
+
+// Computer move: win/block/random
+void computerMove(char board[MAX_SIZE][MAX_SIZE], int n, char symbol, int players) {
+    int r, c;
+
+    // Try to win
+    for (r = 0; r < n; r++) {
+        for (c = 0; c < n; c++) {
+            if (isValidMove(board, n, r, c)) {
+                board[r][c] = symbol;
+                if (hasPlayerWon(board, n, symbol)) return;
+                board[r][c] = '.';
+            }
+        }
+    }
+
+    // Try to block
+    for (int opp = 0; opp < players; opp++) {
+        char oppSym = (opp == 0 ? 'X' : 'O');
+        if (oppSym == symbol) continue;
+
+        for (r = 0; r < n; r++) {
+            for (c = 0; c < n; c++) {
+                if (isValidMove(board, n, r, c)) {
+                    board[r][c] = oppSym;
+                    if (hasPlayerWon(board, n, oppSym)) {
+                        board[r][c] = symbol;
+                        return;
+                    }
+                    board[r][c] = '.';
+                }
+            }
+        }
+    }
+
+    // Otherwise random
+    do {
+        r = rand() % n;
+        c = rand() % n;
+    } while (!isValidMove(board, n, r, c));
+
+    board[r][c] = symbol;
+}
+
